@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labor Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Labor Tracker</h1>
+            <p class="subtitle">Track contractions and important notes</p>
+        </header>
+
+        <main>
+            <section class="contraction-tracker">
+                <h2>Contraction Timer</h2>
+                <div class="timer-display">
+                    <div class="current-time">00:00</div>
+                    <div class="timer-controls">
+                        <button id="start-contraction" class="btn btn-primary">Start Contraction</button>
+                        <button id="end-contraction" class="btn btn-secondary" disabled>End Contraction</button>
+                    </div>
+                </div>
+                <div class="timing-info">
+                    <div class="timing-item">
+                        <span class="label">Last Duration:</span>
+                        <span id="last-duration">--</span>
+                    </div>
+                    <div class="timing-item">
+                        <span class="label">Time Between:</span>
+                        <span id="time-between">--</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="contraction-history">
+                <h2>Contraction History</h2>
+                <div class="chart-container">
+                    <canvas id="contractionChart"></canvas>
+                </div>
+                <div class="history-list">
+                    <div class="history-header">
+                        <span>Time</span>
+                        <span>Duration</span>
+                        <span>Interval</span>
+                    </div>
+                    <div id="history-items"></div>
+                </div>
+            </section>
+
+            <section class="notes">
+                <h2>Notes for Caregivers</h2>
+                <textarea id="caregiver-notes" placeholder="Add important information for your healthcare team..."></textarea>
+                <div class="notes-info">
+                    <small>Notes are automatically saved as you type</small>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
