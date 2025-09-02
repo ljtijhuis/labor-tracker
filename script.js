@@ -42,7 +42,10 @@ class LaborTracker {
     initializeEventListeners() {
         this.startBtn.addEventListener('click', () => this.startContraction());
         this.endBtn.addEventListener('click', () => this.endContraction());
-        this.notesTextarea.addEventListener('input', () => this.saveNotes());
+        this.notesTextarea.addEventListener('input', () => {
+            this.autoResizeTextarea();
+            this.saveNotes();
+        });
         this.addManualBtn.addEventListener('click', () => this.addManualContraction());
         this.exportBtn.addEventListener('click', () => this.exportData());
         this.importBtn.addEventListener('click', () => this.importFileInput.click());
@@ -316,11 +319,32 @@ class LaborTracker {
         localStorage.setItem('caregiverNotes', this.notesTextarea.value);
     }
 
+    autoResizeTextarea() {
+        // Reset height to auto to get the correct scrollHeight
+        this.notesTextarea.style.height = 'auto';
+        
+        // Set the height to fit the content
+        const scrollHeight = this.notesTextarea.scrollHeight;
+        const minHeight = 120; // Match CSS min-height
+        const maxHeight = 400; // Reasonable maximum height
+        
+        const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
+        this.notesTextarea.style.height = newHeight + 'px';
+        
+        // If content exceeds max height, show scrollbar
+        if (scrollHeight > maxHeight) {
+            this.notesTextarea.style.overflowY = 'auto';
+        } else {
+            this.notesTextarea.style.overflowY = 'hidden';
+        }
+    }
+
     loadNotes() {
         const savedNotes = localStorage.getItem('caregiverNotes');
         if (savedNotes) {
             this.notesTextarea.value = savedNotes;
         }
+        this.autoResizeTextarea();
     }
 
     addManualContraction() {
@@ -533,6 +557,7 @@ class LaborTracker {
                 
                 this.saveData();
                 this.saveNotes();
+                this.autoResizeTextarea();
                 this.updateDisplay();
                 this.updateChart();
                 
@@ -881,6 +906,7 @@ class LaborTracker {
                 
                 this.saveData();
                 this.saveNotes();
+                this.autoResizeTextarea();
                 this.updateDisplay();
                 this.updateChart();
                 

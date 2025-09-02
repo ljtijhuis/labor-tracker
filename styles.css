@@ -392,8 +392,9 @@ section h2 {
     border-radius: 8px;
     font-size: 1rem;
     font-family: inherit;
-    resize: vertical;
-    transition: border-color 0.3s ease;
+    resize: none;
+    overflow: hidden;
+    transition: border-color 0.3s ease, height 0.1s ease;
 }
 
 #caregiver-notes:focus {
