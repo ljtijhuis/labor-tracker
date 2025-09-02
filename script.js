@@ -293,13 +293,13 @@ class LaborTracker {
             return;
         }
         
-        if (!this.validateDurationFormat(durationValue)) {
-            alert('Please enter duration in MM:SS format (e.g., 1:30).');
+        const durationSeconds = parseInt(durationValue, 10);
+        if (isNaN(durationSeconds) || durationSeconds <= 0) {
+            alert('Please enter a valid duration in seconds (e.g., 90).');
             return;
         }
         
         const startTime = new Date(timeValue);
-        const durationSeconds = this.parseDurationToSeconds(durationValue);
         const endTime = new Date(startTime.getTime() + durationSeconds * 1000);
         
         const contraction = {
@@ -359,12 +359,14 @@ class LaborTracker {
             cell.appendChild(saveBtn);
             cell.appendChild(cancelBtn);
         } else if (field === 'duration') {
-            const duration = this.formatDuration(new Date(contraction.startTime), new Date(contraction.endTime));
+            const durationMs = new Date(contraction.endTime) - new Date(contraction.startTime);
+            const durationSeconds = Math.floor(durationMs / 1000);
             const input = document.createElement('input');
-            input.type = 'text';
-            input.value = duration;
+            input.type = 'number';
+            input.value = durationSeconds;
             input.className = 'edit-input';
-            input.pattern = '[0-9]+:[0-5][0-9]';
+            input.min = '1';
+            input.max = '600';
             
             const saveBtn = document.createElement('button');
             saveBtn.textContent = '✓';
@@ -408,13 +410,13 @@ class LaborTracker {
     }
     
     saveDurationEdit(index, newDurationValue) {
-        if (!this.validateDurationFormat(newDurationValue)) {
-            alert('Please enter duration in MM:SS format (e.g., 1:30).');
+        const durationSeconds = parseInt(newDurationValue, 10);
+        if (isNaN(durationSeconds) || durationSeconds <= 0) {
+            alert('Please enter a valid duration in seconds (e.g., 90).');
             return;
         }
         
         const contraction = this.contractions[index];
-        const durationSeconds = this.parseDurationToSeconds(newDurationValue);
         const newEndTime = new Date(new Date(contraction.startTime).getTime() + durationSeconds * 1000);
         
         this.contractions[index] = {
