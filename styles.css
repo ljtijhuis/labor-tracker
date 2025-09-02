@@ -218,7 +218,7 @@ section h2 {
 /* Manual Entry Form Styles */
 .manual-form {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 20px;
     align-items: end;
 }
@@ -248,10 +248,92 @@ section h2 {
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
+/* Intensity Control Styles */
+.intensity-control {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.intensity-control input[type="range"] {
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+}
+
+.intensity-control input[type="range"]::-webkit-slider-track {
+    background: linear-gradient(to right, #28a745 0%, #ffc107 50%, #dc3545 100%);
+    height: 8px;
+    border-radius: 4px;
+}
+
+.intensity-control input[type="range"]::-webkit-slider-thumb {
+    background: #667eea;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+    -webkit-appearance: none;
+    margin-top: -6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.intensity-control input[type="range"]::-moz-range-track {
+    background: linear-gradient(to right, #28a745 0%, #ffc107 50%, #dc3545 100%);
+    height: 8px;
+    border-radius: 4px;
+    border: none;
+}
+
+.intensity-control input[type="range"]::-moz-range-thumb {
+    background: #667eea;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.intensity-display {
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.intensity-display #intensity-value,
+.intensity-display #timer-intensity-value {
+    font-weight: 700;
+    color: #495057;
+    margin-right: 5px;
+}
+
+.intensity-display #intensity-label,
+.intensity-display #timer-intensity-label {
+    color: #6c757d;
+    font-style: italic;
+}
+
+.timer-intensity {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.timer-intensity label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #495057;
+    text-align: center;
+}
+
 /* History Grid Updates */
 .history-header {
     display: grid;
-    grid-template-columns: 2fr 1.5fr 1fr 1fr;
+    grid-template-columns: 2fr 1.2fr 1.2fr 1fr 1fr;
     padding: 15px;
     background-color: #495057;
     color: white;
@@ -262,7 +344,7 @@ section h2 {
 
 .history-item {
     display: grid;
-    grid-template-columns: 2fr 1.5fr 1fr 1fr;
+    grid-template-columns: 2fr 1.2fr 1.2fr 1fr 1fr;
     padding: 12px 15px;
     border-bottom: 1px solid #dee2e6;
     text-align: center;
@@ -271,12 +353,39 @@ section h2 {
 }
 
 /* Edit Mode Styles */
-.time-cell, .duration-cell, .actions-cell {
+.time-cell, .duration-cell, .intensity-cell, .actions-cell {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 5px;
     flex-wrap: wrap;
+}
+
+.intensity-edit-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 100px;
+    gap: 5px;
+}
+
+.intensity-edit-display {
+    font-size: 0.8rem;
+    color: #495057;
+    text-align: center;
+    white-space: nowrap;
+    margin: 2px 0;
+}
+
+.intensity-edit-buttons {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+.intensity-slider {
+    width: 80px !important;
+    margin: 0;
 }
 
 .edit-btn, .save-btn, .cancel-btn, .delete-btn {
@@ -432,9 +541,9 @@ section h2 {
     .history-item {
         font-size: 0.9rem;
         padding: 10px;
-        grid-template-columns: 1.5fr 1fr 0.8fr 0.8fr;
+        grid-template-columns: 1.2fr 0.8fr 0.8fr 0.6fr 0.6fr;
     }
-
+    
     .edit-input[type="datetime-local"] {
         width: 120px;
     }

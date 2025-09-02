@@ -22,7 +22,10 @@ class LaborTracker {
         this.notesTextarea = document.getElementById('caregiver-notes');
         this.manualTimeInput = document.getElementById('manual-time');
         this.manualDurationInput = document.getElementById('manual-duration');
+        this.manualIntensityInput = document.getElementById('manual-intensity');
         this.addManualBtn = document.getElementById('add-manual');
+        this.timerIntensityInput = document.getElementById('timer-intensity');
+        this.timerIntensitySection = document.getElementById('timer-intensity-section');
         this.exportBtn = document.getElementById('export-data');
         this.importBtn = document.getElementById('import-data');
         this.importFileInput = document.getElementById('import-file');
@@ -38,16 +41,22 @@ class LaborTracker {
         this.importBtn.addEventListener('click', () => this.importFileInput.click());
         this.importFileInput.addEventListener('change', (e) => this.importData(e));
         this.clearBtn.addEventListener('click', () => this.clearData());
+        this.manualIntensityInput.addEventListener('input', () => this.updateIntensityDisplay('manual'));
+        this.timerIntensityInput.addEventListener('input', () => this.updateIntensityDisplay('timer'));
     }
 
     startContraction() {
         this.currentContraction = {
             startTime: new Date(),
-            endTime: null
+            endTime: null,
+            intensity: 3
         };
         
         this.startBtn.disabled = true;
         this.endBtn.disabled = false;
+        this.timerIntensitySection.style.display = 'block';
+        this.timerIntensityInput.value = 3;
+        this.updateIntensityDisplay('timer');
         
         this.timer = setInterval(() => {
             this.updateTimer();
@@ -58,10 +67,12 @@ class LaborTracker {
         if (!this.currentContraction) return;
         
         this.currentContraction.endTime = new Date();
+        this.currentContraction.intensity = parseInt(this.timerIntensityInput.value);
         this.contractions.push(this.currentContraction);
         
         this.startBtn.disabled = false;
         this.endBtn.disabled = true;
+        this.timerIntensitySection.style.display = 'none';
         
         clearInterval(this.timer);
         this.timerDisplay.textContent = '00:00';
@@ -162,6 +173,8 @@ class LaborTracker {
             }
             
             const actualIndex = this.contractions.length - 1 - index;
+            const intensity = contraction.intensity || 3;
+            const intensityLabel = this.getIntensityLabel(intensity);
             
             item.innerHTML = `
                 <span class="time-cell" data-index="${actualIndex}">
@@ -171,6 +184,10 @@ class LaborTracker {
                 <span class="duration-cell" data-index="${actualIndex}">
                     <span class="display-value">${duration}</span>
                     ${endTime ? `<button class="edit-btn" onclick="laborTracker.editField(${actualIndex}, 'duration')">✏️</button>` : ''}
+                </span>
+                <span class="intensity-cell" data-index="${actualIndex}">
+                    <span class="display-value">${intensity} - ${intensityLabel}</span>
+                    ${endTime ? `<button class="edit-btn" onclick="laborTracker.editField(${actualIndex}, 'intensity')">✏️</button>` : ''}
                 </span>
                 <span>${interval}</span>
                 <span class="actions-cell">
@@ -287,6 +304,7 @@ class LaborTracker {
     addManualContraction() {
         const timeValue = this.manualTimeInput.value;
         const durationValue = this.manualDurationInput.value;
+        const intensityValue = this.manualIntensityInput.value;
         
         if (!timeValue || !durationValue) {
             alert('Please fill in both time and duration fields.');
@@ -304,7 +322,8 @@ class LaborTracker {
         
         const contraction = {
             startTime: startTime,
-            endTime: endTime
+            endTime: endTime,
+            intensity: parseInt(intensityValue, 10)
         };
         
         this.contractions.push(contraction);
@@ -312,6 +331,8 @@ class LaborTracker {
         
         this.manualTimeInput.value = '';
         this.manualDurationInput.value = '';
+        this.manualIntensityInput.value = 3;
+        this.updateIntensityDisplay('manual');
         
         this.saveData();
         this.updateDisplay();
@@ -447,7 +468,7 @@ class LaborTracker {
             contractions: this.contractions,
             notes: this.notesTextarea.value,
             exportDate: new Date().toISOString(),
-            version: '1.0'
+            version: '1.1'
         };
         
         const dataStr = JSON.stringify(exportData, null, 2);
@@ -512,17 +533,163 @@ class LaborTracker {
         if (!data.exportDate || !data.version) return false;
         
         return data.contractions.every(contraction => {
-            return contraction.startTime && 
-                   (contraction.endTime || contraction.endTime === null) &&
-                   new Date(contraction.startTime).toString() !== 'Invalid Date';
+            const hasValidStartTime = contraction.startTime && 
+                                    new Date(contraction.startTime).toString() !== 'Invalid Date';
+            const hasValidEndTime = contraction.endTime === null || 
+                                   (contraction.endTime && new Date(contraction.endTime).toString() !== 'Invalid Date');
+            const hasValidIntensity = contraction.intensity === undefined || 
+                                     (typeof contraction.intensity === 'number' && 
+                                      contraction.intensity >= 1 && 
+                                      contraction.intensity <= 5);
+            
+            return hasValidStartTime && hasValidEndTime && hasValidIntensity;
         });
     }
     
     processImportedContractions(contractions) {
         return contractions.map(contraction => ({
             startTime: new Date(contraction.startTime),
-            endTime: contraction.endTime ? new Date(contraction.endTime) : null
+            endTime: contraction.endTime ? new Date(contraction.endTime) : null,
+            intensity: contraction.intensity || 3
         })).sort((a, b) => a.startTime - b.startTime);
+    }
+
+    updateIntensityDisplay(type) {
+        const input = type === 'manual' ? this.manualIntensityInput : this.timerIntensityInput;
+        const valueSpan = document.getElementById(`${type === 'manual' ? 'intensity' : 'timer-intensity'}-value`);
+        const labelSpan = document.getElementById(`${type === 'manual' ? 'intensity' : 'timer-intensity'}-label`);
+        
+        const value = input.value;
+        valueSpan.textContent = value;
+        labelSpan.textContent = this.getIntensityLabel(parseInt(value));
+    }
+    
+    getIntensityLabel(intensity) {
+        const labels = {
+            1: 'Light',
+            2: 'Mild', 
+            3: 'Medium',
+            4: 'Strong',
+            5: 'Heavy'
+        };
+        return labels[intensity] || 'Medium';
+    }
+    
+    editField(index, field) {
+        const contraction = this.contractions[index];
+        if (!contraction || !contraction.endTime) return;
+        
+        const cell = document.querySelector(`.${field}-cell[data-index="${index}"]`);
+        const displayValue = cell.querySelector('.display-value');
+        const editBtn = cell.querySelector('.edit-btn');
+        
+        if (field === 'time') {
+            const currentTime = new Date(contraction.startTime);
+            const input = document.createElement('input');
+            input.type = 'datetime-local';
+            input.step = '1';
+            input.value = currentTime.toISOString().slice(0, 19);
+            input.className = 'edit-input';
+            
+            const saveBtn = document.createElement('button');
+            saveBtn.textContent = '✓';
+            saveBtn.className = 'save-btn';
+            saveBtn.onclick = () => this.saveTimeEdit(index, input.value);
+            
+            const cancelBtn = document.createElement('button');
+            cancelBtn.textContent = '✕';
+            cancelBtn.className = 'cancel-btn';
+            cancelBtn.onclick = () => this.cancelEdit();
+            
+            displayValue.style.display = 'none';
+            editBtn.style.display = 'none';
+            cell.appendChild(input);
+            cell.appendChild(saveBtn);
+            cell.appendChild(cancelBtn);
+        } else if (field === 'duration') {
+            const durationMs = new Date(contraction.endTime) - new Date(contraction.startTime);
+            const durationSeconds = Math.floor(durationMs / 1000);
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.value = durationSeconds;
+            input.className = 'edit-input';
+            input.min = '1';
+            input.max = '600';
+            
+            const saveBtn = document.createElement('button');
+            saveBtn.textContent = '✓';
+            saveBtn.className = 'save-btn';
+            saveBtn.onclick = () => this.saveDurationEdit(index, input.value);
+            
+            const cancelBtn = document.createElement('button');
+            cancelBtn.textContent = '✕';
+            cancelBtn.className = 'cancel-btn';
+            cancelBtn.onclick = () => this.cancelEdit();
+            
+            displayValue.style.display = 'none';
+            editBtn.style.display = 'none';
+            cell.appendChild(input);
+            cell.appendChild(saveBtn);
+            cell.appendChild(cancelBtn);
+        } else if (field === 'intensity') {
+            const currentIntensity = contraction.intensity || 3;
+            
+            const editContainer = document.createElement('div');
+            editContainer.className = 'intensity-edit-container';
+            
+            const input = document.createElement('input');
+            input.type = 'range';
+            input.min = '1';
+            input.max = '5';
+            input.value = currentIntensity;
+            input.className = 'edit-input intensity-slider';
+            
+            const valueDisplay = document.createElement('div');
+            valueDisplay.textContent = `${currentIntensity} - ${this.getIntensityLabel(currentIntensity)}`;
+            valueDisplay.className = 'intensity-edit-display';
+            
+            const buttonContainer = document.createElement('div');
+            buttonContainer.className = 'intensity-edit-buttons';
+            
+            const saveBtn = document.createElement('button');
+            saveBtn.textContent = '✓';
+            saveBtn.className = 'save-btn';
+            saveBtn.onclick = () => this.saveIntensityEdit(index, input.value);
+            
+            const cancelBtn = document.createElement('button');
+            cancelBtn.textContent = '✕';
+            cancelBtn.className = 'cancel-btn';
+            cancelBtn.onclick = () => this.cancelEdit();
+            
+            input.addEventListener('input', () => {
+                const val = input.value;
+                valueDisplay.textContent = `${val} - ${this.getIntensityLabel(parseInt(val))}`;
+            });
+            
+            editContainer.appendChild(input);
+            editContainer.appendChild(valueDisplay);
+            buttonContainer.appendChild(saveBtn);
+            buttonContainer.appendChild(cancelBtn);
+            editContainer.appendChild(buttonContainer);
+            
+            displayValue.style.display = 'none';
+            editBtn.style.display = 'none';
+            cell.appendChild(editContainer);
+        }
+    }
+    
+    saveIntensityEdit(index, newIntensityValue) {
+        const intensity = parseInt(newIntensityValue, 10);
+        if (isNaN(intensity) || intensity < 1 || intensity > 5) {
+            alert('Please select a valid intensity level (1-5).');
+            return;
+        }
+        
+        this.contractions[index].intensity = intensity;
+        
+        this.saveData();
+        this.updateDisplay();
+        this.updateChart();
     }
 
     clearData() {

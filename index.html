@@ -23,6 +23,16 @@
                         <button id="start-contraction" class="btn btn-primary">Start Contraction</button>
                         <button id="end-contraction" class="btn btn-secondary" disabled>End Contraction</button>
                     </div>
+                    <div class="timer-intensity" id="timer-intensity-section" style="display: none;">
+                        <label>Rate this contraction's intensity:</label>
+                        <div class="intensity-control">
+                            <input type="range" id="timer-intensity" min="1" max="5" value="3">
+                            <div class="intensity-display">
+                                <span id="timer-intensity-value">3</span>
+                                <span id="timer-intensity-label">Medium</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="timing-info">
                     <div class="timing-item">
@@ -47,6 +57,16 @@
                         <label for="manual-duration">Duration (seconds):</label>
                         <input type="number" id="manual-duration" placeholder="90" min="1" max="600">
                     </div>
+                    <div class="form-group">
+                        <label for="manual-intensity">Intensity:</label>
+                        <div class="intensity-control">
+                            <input type="range" id="manual-intensity" min="1" max="5" value="3">
+                            <div class="intensity-display">
+                                <span id="intensity-value">3</span>
+                                <span id="intensity-label">Medium</span>
+                            </div>
+                        </div>
+                    </div>
                     <button id="add-manual" class="btn btn-primary">Add Contraction</button>
                 </div>
             </section>
@@ -60,6 +80,7 @@
                     <div class="history-header">
                         <span>Time</span>
                         <span>Duration</span>
+                        <span>Intensity</span>
                         <span>Interval</span>
                         <span>Actions</span>
                     </div>
