@@ -8,6 +8,7 @@ class LaborTracker {
         this.initializeElements();
         this.initializeEventListeners();
         this.loadNotes();
+        this.checkForUrlImport();
         this.updateDisplay();
         this.initializeChart();
     }
@@ -30,6 +31,12 @@ class LaborTracker {
         this.importBtn = document.getElementById('import-data');
         this.importFileInput = document.getElementById('import-file');
         this.clearBtn = document.getElementById('clear-data');
+        this.exportQrBtn = document.getElementById('export-qr');
+        this.scanQrBtn = document.getElementById('scan-qr');
+        this.qrModal = document.getElementById('qr-modal');
+        this.scannerModal = document.getElementById('scanner-modal');
+        this.scannerVideo = document.getElementById('scanner-video');
+        this.startCameraBtn = document.getElementById('start-camera');
     }
 
     initializeEventListeners() {
@@ -43,6 +50,21 @@ class LaborTracker {
         this.clearBtn.addEventListener('click', () => this.clearData());
         this.manualIntensityInput.addEventListener('input', () => this.updateIntensityDisplay('manual'));
         this.timerIntensityInput.addEventListener('input', () => this.updateIntensityDisplay('timer'));
+        this.exportQrBtn.addEventListener('click', () => this.showQRCode());
+        this.scanQrBtn.addEventListener('click', () => this.openScanner());
+        this.startCameraBtn.addEventListener('click', () => this.startCamera());
+        
+        // Modal close buttons
+        document.querySelector('.close-modal').addEventListener('click', () => this.closeQRModal());
+        document.querySelector('.close-scanner').addEventListener('click', () => this.closeScanner());
+        
+        // Close modals when clicking outside
+        this.qrModal.addEventListener('click', (e) => {
+            if (e.target === this.qrModal) this.closeQRModal();
+        });
+        this.scannerModal.addEventListener('click', (e) => {
+            if (e.target === this.scannerModal) this.closeScanner();
+        });
     }
 
     startContraction() {
@@ -690,6 +712,249 @@ class LaborTracker {
         this.saveData();
         this.updateDisplay();
         this.updateChart();
+    }
+
+    showQRCode() {
+        // Compress data by removing unnecessary fields and shortening property names
+        const compactData = {
+            c: this.contractions.map(contraction => [
+                contraction.startTime.getTime(), // Use timestamp instead of ISO string
+                contraction.endTime ? contraction.endTime.getTime() : null,
+                contraction.intensity || 3
+            ]),
+            n: this.notesTextarea.value,
+            d: Date.now(),
+            v: 2 // Version 2 for compact format
+        };
+        
+        try {
+            // Try to create QR code with compact data
+            const dataStr = JSON.stringify(compactData);
+            console.log('Data size:', dataStr.length, 'characters');
+            
+            // Use simple base64 encoding
+            const encodedData = btoa(dataStr);
+            
+            // Create URL that the app can handle
+            const currentUrl = window.location.origin + window.location.pathname;
+            const qrUrl = `${currentUrl}?d=${encodedData}`;
+            
+            console.log('QR URL length:', qrUrl.length);
+            
+            const qrContainer = document.getElementById('qr-code-container');
+            qrContainer.innerHTML = '';
+            
+            // Check if QRious library is available
+            if (typeof QRious === 'undefined') {
+                qrContainer.innerHTML = '<p>QR Code library not loaded. Please refresh the page.</p>';
+                console.error('QRious library not found');
+                this.qrModal.style.display = 'block';
+                return;
+            }
+            
+            // Check if data is too large for QR code (rough estimate)
+            if (qrUrl.length > 2000) {
+                qrContainer.innerHTML = '<p>Too much data for QR code. Try reducing the number of contractions or notes.</p>';
+                this.qrModal.style.display = 'block';
+                return;
+            }
+            
+            // Create canvas element
+            const canvas = document.createElement('canvas');
+            qrContainer.appendChild(canvas);
+            
+            // Generate QR Code using QRious with URL
+            new QRious({
+                element: canvas,
+                value: qrUrl,
+                size: 300,
+                foreground: '#2d4a35',
+                background: '#f5f3f0'
+            });
+            
+        } catch (error) {
+            console.error('QR Code generation error:', error);
+            const qrContainer = document.getElementById('qr-code-container');
+            qrContainer.innerHTML = '<p>Error generating QR code. Data might be too large.</p>';
+        }
+        
+        this.qrModal.style.display = 'block';
+    }
+    
+    closeQRModal() {
+        this.qrModal.style.display = 'none';
+    }
+    
+    openScanner() {
+        this.scannerModal.style.display = 'block';
+    }
+    
+    closeScanner() {
+        this.scannerModal.style.display = 'none';
+        if (this.scannerVideo.srcObject) {
+            const tracks = this.scannerVideo.srcObject.getTracks();
+            tracks.forEach(track => track.stop());
+            this.scannerVideo.srcObject = null;
+        }
+        if (this.codeReader) {
+            this.codeReader.reset();
+        }
+    }
+    
+    async startCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment' }
+            });
+            this.scannerVideo.srcObject = stream;
+            this.scannerVideo.style.display = 'block';
+            this.startCameraBtn.style.display = 'none';
+            
+            // Initialize QR code reader
+            this.codeReader = new ZXing.BrowserQRCodeReader();
+            
+            this.codeReader.decodeFromVideoDevice(null, this.scannerVideo, (result, err) => {
+                if (result) {
+                    this.handleQRResult(result.text);
+                }
+                if (err && !(err instanceof ZXing.NotFoundException)) {
+                    console.error(err);
+                }
+            });
+            
+        } catch (error) {
+            alert('Camera access denied or not available. Please check your browser permissions.');
+            console.error('Camera error:', error);
+        }
+    }
+    
+    handleQRResult(qrData) {
+        try {
+            let importData;
+            
+            // Check if it's a URL (our format) or direct JSON data
+            if (qrData.includes('?d=')) {
+                // Extract the data parameter from URL
+                const url = new URL(qrData);
+                const encodedData = url.searchParams.get('d');
+                
+                if (!encodedData) {
+                    alert('No data found in QR code URL.');
+                    return;
+                }
+                
+                // Decode the base64 data
+                const decodedData = atob(encodedData);
+                const compactData = JSON.parse(decodedData);
+                
+                if (compactData.v === 2) {
+                    // Convert compact format to full format
+                    importData = {
+                        contractions: compactData.c.map(c => ({
+                            startTime: new Date(c[0]),
+                            endTime: c[1] ? new Date(c[1]) : null,
+                            intensity: c[2] || 3
+                        })),
+                        notes: compactData.n || '',
+                        exportDate: new Date(compactData.d).toISOString(),
+                        version: '2.0'
+                    };
+                } else {
+                    // Old format fallback
+                    importData = compactData;
+                }
+            } else {
+                // Try to parse as direct JSON (old format)
+                importData = JSON.parse(qrData);
+            }
+            
+            if (!this.validateImportData(importData)) {
+                alert('Invalid QR code data. Please scan a valid labor tracker QR code.');
+                return;
+            }
+            
+            const confirmMessage = `Import data from QR code?\n\nThis will replace current data:\n- ${this.contractions.length} contractions\n- ${this.notesTextarea.value.length} characters of notes\n\nWith QR data:\n- ${importData.contractions.length} contractions\n- ${importData.notes.length} characters of notes\n\nContinue?`;
+            
+            if (confirm(confirmMessage)) {
+                this.contractions = this.processImportedContractions(importData.contractions);
+                this.notesTextarea.value = importData.notes || '';
+                
+                this.saveData();
+                this.saveNotes();
+                this.updateDisplay();
+                this.updateChart();
+                
+                alert(`Successfully imported ${this.contractions.length} contractions from QR code!`);
+                this.closeScanner();
+            }
+            
+        } catch (error) {
+            alert('Invalid QR code format. Please scan a valid labor tracker QR code.');
+            console.error('QR decode error:', error);
+        }
+    }
+
+    checkForUrlImport() {
+        const urlParams = new URLSearchParams(window.location.search);
+        let importData = urlParams.get('d') || urlParams.get('import'); // Support both new and old formats
+        
+        if (importData) {
+            try {
+                let parsedData;
+                
+                // Try new compact format first
+                try {
+                    const decodedData = atob(importData);
+                    const compactData = JSON.parse(decodedData);
+                    
+                    if (compactData.v === 2) {
+                        // Convert compact format to full format
+                        parsedData = {
+                            contractions: compactData.c.map(c => ({
+                                startTime: new Date(c[0]),
+                                endTime: c[1] ? new Date(c[1]) : null,
+                                intensity: c[2] || 3
+                            })),
+                            notes: compactData.n || '',
+                            exportDate: new Date(compactData.d).toISOString(),
+                            version: '2.0'
+                        };
+                    } else {
+                        // Old format, process as-is
+                        parsedData = compactData;
+                    }
+                } catch (e) {
+                    // Fall back to old format
+                    const decodedData = decodeURIComponent(atob(importData));
+                    parsedData = JSON.parse(decodedData);
+                }
+                
+                if (this.validateImportData(parsedData)) {
+                    const confirmMessage = `Import data from QR code?\n\nThis will replace current data:\n- ${this.contractions.length} contractions\n- ${this.notesTextarea.value.length} characters of notes\n\nWith QR data:\n- ${parsedData.contractions.length} contractions\n- ${parsedData.notes.length} characters of notes\n\nContinue?`;
+                    
+                    if (confirm(confirmMessage)) {
+                        this.contractions = this.processImportedContractions(parsedData.contractions);
+                        this.notesTextarea.value = parsedData.notes || '';
+                        
+                        this.saveData();
+                        this.saveNotes();
+                        
+                        alert(`Successfully imported ${this.contractions.length} contractions from QR code!`);
+                    }
+                } else {
+                    alert('Invalid QR code data format.');
+                }
+            } catch (error) {
+                console.error('URL import error:', error);
+                alert('Invalid QR code data. Please scan a valid labor tracker QR code.');
+            }
+            
+            // Clean up URL without reloading page
+            const url = new URL(window.location);
+            url.searchParams.delete('d');
+            url.searchParams.delete('import');
+            window.history.replaceState({}, document.title, url);
+        }
     }
 
     clearData() {

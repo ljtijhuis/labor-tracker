@@ -6,6 +6,8 @@
     <title>Labor Tracker</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+    <script src="https://unpkg.com/@zxing/library@0.20.0/umd/index.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -103,10 +105,18 @@
                         <button id="export-data" class="btn btn-secondary">Export Data</button>
                         <small>Download your data as a backup file</small>
                     </div>
+                    <div class="qr-section">
+                        <button id="export-qr" class="btn btn-secondary">Share via QR</button>
+                        <small>Generate QR code to scan on another device</small>
+                    </div>
                     <div class="import-section">
                         <input type="file" id="import-file" accept=".json" style="display: none;">
                         <button id="import-data" class="btn btn-secondary">Import Data</button>
                         <small>Upload a previously saved backup file</small>
+                    </div>
+                    <div class="scan-section">
+                        <button id="scan-qr" class="btn btn-secondary">Scan QR Code</button>
+                        <small>Import data from QR code</small>
                     </div>
                     <div class="clear-section">
                         <button id="clear-data" class="btn btn-danger">Clear All Data</button>
@@ -115,6 +125,35 @@
                 </div>
             </section>
         </main>
+    </div>
+
+    <!-- QR Code Modal -->
+    <div id="qr-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Share Data via QR Code</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="qr-code-container"></div>
+                <p>Scan this QR code with your phone to import the data</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Scanner Modal -->
+    <div id="scanner-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Scan QR Code</h3>
+                <button class="close-scanner">&times;</button>
+            </div>
+            <div class="modal-body">
+                <video id="scanner-video" autoplay playsinline></video>
+                <div id="scanner-result"></div>
+                <button id="start-camera" class="btn btn-primary">Start Camera</button>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
