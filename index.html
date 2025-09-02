@@ -36,6 +36,21 @@
                 </div>
             </section>
 
+            <section class="manual-entry">
+                <h2>Manual Entry</h2>
+                <div class="manual-form">
+                    <div class="form-group">
+                        <label for="manual-time">Start Time:</label>
+                        <input type="datetime-local" id="manual-time" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="manual-duration">Duration (MM:SS):</label>
+                        <input type="text" id="manual-duration" placeholder="1:30" pattern="[0-9]+:[0-9]{2}">
+                    </div>
+                    <button id="add-manual" class="btn btn-primary">Add Contraction</button>
+                </div>
+            </section>
+
             <section class="contraction-history">
                 <h2>Contraction History</h2>
                 <div class="chart-container">
@@ -46,6 +61,7 @@
                         <span>Time</span>
                         <span>Duration</span>
                         <span>Interval</span>
+                        <span>Actions</span>
                     </div>
                     <div id="history-items"></div>
                 </div>
@@ -56,6 +72,25 @@
                 <textarea id="caregiver-notes" placeholder="Add important information for your healthcare team..."></textarea>
                 <div class="notes-info">
                     <small>Notes are automatically saved as you type</small>
+                </div>
+            </section>
+
+            <section class="data-management">
+                <h2>Data Management</h2>
+                <div class="data-controls">
+                    <div class="export-section">
+                        <button id="export-data" class="btn btn-secondary">Export Data</button>
+                        <small>Download your data as a backup file</small>
+                    </div>
+                    <div class="import-section">
+                        <input type="file" id="import-file" accept=".json" style="display: none;">
+                        <button id="import-data" class="btn btn-secondary">Import Data</button>
+                        <small>Upload a previously saved backup file</small>
+                    </div>
+                    <div class="clear-section">
+                        <button id="clear-data" class="btn btn-danger">Clear All Data</button>
+                        <small>Remove all contractions and notes</small>
+                    </div>
                 </div>
             </section>
         </main>

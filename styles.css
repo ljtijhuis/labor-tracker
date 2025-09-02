@@ -215,6 +215,179 @@ section h2 {
     font-style: italic;
 }
 
+/* Manual Entry Form Styles */
+.manual-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: end;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #495057;
+}
+
+.form-group input {
+    padding: 10px;
+    border: 2px solid #dee2e6;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* History Grid Updates */
+.history-header {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr 1fr;
+    padding: 15px;
+    background-color: #495057;
+    color: white;
+    font-weight: 600;
+    border-radius: 8px 8px 0 0;
+    text-align: center;
+}
+
+.history-item {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr 1fr;
+    padding: 12px 15px;
+    border-bottom: 1px solid #dee2e6;
+    text-align: center;
+    transition: background-color 0.2s ease;
+    align-items: center;
+}
+
+/* Edit Mode Styles */
+.time-cell, .duration-cell, .actions-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.edit-btn, .save-btn, .cancel-btn, .delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
+}
+
+.edit-btn:hover, .delete-btn:hover {
+    background-color: #f8f9fa;
+}
+
+.save-btn {
+    color: #28a745;
+    background-color: #d4edda;
+}
+
+.save-btn:hover {
+    background-color: #c3e6cb;
+}
+
+.cancel-btn {
+    color: #dc3545;
+    background-color: #f8d7da;
+}
+
+.cancel-btn:hover {
+    background-color: #f1b0b7;
+}
+
+.delete-btn {
+    color: #dc3545;
+}
+
+.delete-btn:hover {
+    background-color: #f8d7da;
+}
+
+.edit-input {
+    padding: 4px 6px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    width: 80px;
+}
+
+.edit-input[type="datetime-local"] {
+    width: 150px;
+}
+
+/* Data Management Styles */
+.data-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 25px;
+    margin-top: 10px;
+}
+
+.export-section,
+.import-section,
+.clear-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    transition: background-color 0.2s ease;
+}
+
+.export-section:hover,
+.import-section:hover {
+    background-color: #e9ecef;
+}
+
+.clear-section {
+    border-color: #dc3545;
+    background-color: #f8d7da;
+}
+
+.clear-section:hover {
+    background-color: #f1b0b7;
+}
+
+.data-controls .btn {
+    margin-bottom: 10px;
+    min-width: 140px;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background-color: #c82333;
+    transform: translateY(-2px);
+}
+
+.data-controls small {
+    color: #6c757d;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
 @media (max-width: 768px) {
     .container {
         padding: 15px;
@@ -250,10 +423,29 @@ section h2 {
         padding: 20px;
     }
 
+    .manual-form {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
     .history-header,
     .history-item {
         font-size: 0.9rem;
         padding: 10px;
+        grid-template-columns: 1.5fr 1fr 0.8fr 0.8fr;
+    }
+
+    .edit-input[type="datetime-local"] {
+        width: 120px;
+    }
+
+    .data-controls {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .data-controls .btn {
+        min-width: 160px;
     }
 }
 
